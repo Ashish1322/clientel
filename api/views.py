@@ -178,7 +178,7 @@ def accounts(response):
         data = Account.objects.all()
         oppo = Opportunity.objects.all() #To count opportunity of each user
         opportunityAccountIds = [i.accountId for i in oppo ]
-        print(opportunityAccountIds) # store all the accountIds in list
+        # store all the accountIds in list
         
 
         ans = []
@@ -195,7 +195,25 @@ def accounts(response):
 # An API to view all Users
 def users(response):
     try:
-        pass
+        data = Userm.objects.all()
+        oppo = Opportunity.objects.all() # To access the all oportunities
+
+        ans = []
+        for value in data:
+            moreThan10000 = False
+            for opportunity in oppo:
+                
+
+                
+                if(opportunity.userId == value.id and opportunity.amount > 100000):
+                    moreThan10000 = True
+                    break
+                    
+
+            ans.append( {'id':value.id, 'name':value.name, 'bigOpportunity': moreThan10000} )
+        totalResults = len(ans)
+
+        return JsonResponse({'status':'true', 'totalResults':totalResults,'data':ans},status=HTTPStatus.OK)
     except Exception as e:
         return JsonResponse({'status':'false','message':"Inernal Server Error. We are sorry for inconvenience."}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
