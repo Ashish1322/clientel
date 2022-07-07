@@ -157,17 +157,39 @@ def importData(response):
 # An API to view all Opportunties
 def opportunities(response):
     try:
-        pass
+        data = Opportunity.objects.all()
+        ans = []
+        for value in data:
+           ans.append( {'id':value.id, 'name':value.name, 'amount':value.amount, 'accountId':value.accountId, 'ownerId':value.userId} )
+        totalResults = len(ans)
+    
+        return JsonResponse({'status':'true', 'totalResults':totalResults,'data':ans},status=HTTPStatus.OK)
+
+        
+
     except Exception as e:
+        print(e)
         return JsonResponse({'status':'false','message':"Inernal Server Error. We are sorry for inconvenience."}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
-    return HttpResponse("opportunities Data")
 
 # An API to view all Accounts
 def accounts(response):
     try:
-        pass
+        data = Account.objects.all()
+        oppo = Opportunity.objects.all() #To count opportunity of each user
+        opportunityAccountIds = [i.accountId for i in oppo ]
+        print(opportunityAccountIds) # store all the accountIds in list
+        
+
+        ans = []
+        for value in data:
+            count = opportunityAccountIds.count(value.id)
+            ans.append( {'id':value.id, 'name':value.name, 'totalOpportunities':count} )
+        totalResults = len(ans)
+    
+        return JsonResponse({'status':'true', 'totalResults':totalResults,'data':ans},status=HTTPStatus.OK)
     except Exception as e:
+        print(e)
         return JsonResponse({'status':'false','message':"Inernal Server Error. We are sorry for inconvenience."}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 # An API to view all Users
