@@ -6,6 +6,7 @@ from urllib import request
 from wsgiref import headers
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse
+import math
 from http import HTTPStatus
 from .models import Account, Userm, Opportunity
 import requests
@@ -155,15 +156,34 @@ def importData(response):
 
 
 # An API to view all Opportunties
-def opportunities(response):
+def opportunities(response,pageNo):
     try:
         data = Opportunity.objects.all()
         ans = []
         for value in data:
            ans.append( {'id':value.id, 'name':value.name, 'amount':value.amount, 'accountId':value.accountId, 'ownerId':value.userId} )
+
         totalResults = len(ans)
-    
-        return JsonResponse({'status':'true', 'totalResults':totalResults,'data':ans},status=HTTPStatus.OK)
+        # Calculating Total Pages
+        totalPages = totalResults//10
+        if(totalResults%10!=0):
+            totalPages += 1
+        # Check if current Page is Invalid
+        if( pageNo > totalPages or pageNo<1):
+            return JsonResponse({'status':'false','message':"Page Number is Invalid."}, status=HTTPStatus.BAD_REQUEST)
+
+        # Calculate the response of current Page only
+        finalAns = []
+        start = (pageNo-1)*10
+
+        for i in range(start,start+10):
+            if(i>=totalResults):
+                break
+          
+            finalAns.append(ans[i])
+            
+        return JsonResponse({'status':'true', 'totalResults':totalResults,
+        'currentPageResults':len(finalAns),"page":pageNo,'totalPages':totalPages,'data':finalAns},status=HTTPStatus.OK)
 
         
 
