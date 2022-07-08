@@ -156,8 +156,10 @@ def importData(response):
 
 
 # An API to view all Opportunties
-def opportunities(response,pageNo):
+def opportunities(response,pageNo = "1"):
+    
     try:
+        pageNo = int(pageNo)
         data = Opportunity.objects.all()
         ans = []
         for value in data:
@@ -193,8 +195,10 @@ def opportunities(response,pageNo):
 
 
 # An API to view all Accounts
-def accounts(response):
+def accounts(response,pageNo = "1"):
+    
     try:
+        pageNo = int(pageNo)
         data = Account.objects.all()
         oppo = Opportunity.objects.all() #To count opportunity of each user
         opportunityAccountIds = [i.accountId for i in oppo ]
@@ -206,15 +210,38 @@ def accounts(response):
             count = opportunityAccountIds.count(value.id)
             ans.append( {'id':value.id, 'name':value.name, 'totalOpportunities':count} )
         totalResults = len(ans)
-    
-        return JsonResponse({'status':'true', 'totalResults':totalResults,'data':ans},status=HTTPStatus.OK)
+
+         # Calculating Total Pages
+        totalPages = totalResults//10
+        if(totalResults%10!=0):
+            totalPages += 1
+        # Check if current Page is Invalid
+        if( pageNo > totalPages or pageNo<1):
+            return JsonResponse({'status':'false','message':"Page Number is Invalid."}, status=HTTPStatus.BAD_REQUEST)
+
+        # Calculate the response of current Page only
+        finalAns = []
+        start = (pageNo-1)*10
+
+        for i in range(start,start+10):
+            if(i>=totalResults):
+                break
+          
+            finalAns.append(ans[i])
+
+       
+
+        return JsonResponse({'status':'true', 'totalResults':totalResults,
+        'currentPageResults':len(finalAns),"page":pageNo,'totalPages':totalPages,'data':finalAns},status=HTTPStatus.OK)
+
     except Exception as e:
         print(e)
         return JsonResponse({'status':'false','message':"Inernal Server Error. We are sorry for inconvenience."}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 # An API to view all Users
-def users(response):
+def users(response,pageNo = "1"):
     try:
+        pageNo = int(pageNo)
         data = Userm.objects.all()
         oppo = Opportunity.objects.all() # To access the all oportunities
 
@@ -233,7 +260,27 @@ def users(response):
             ans.append( {'id':value.id, 'name':value.name, 'bigOpportunity': moreThan10000} )
         totalResults = len(ans)
 
-        return JsonResponse({'status':'true', 'totalResults':totalResults,'data':ans},status=HTTPStatus.OK)
+         # Calculating Total Pages
+        totalPages = totalResults//10
+        if(totalResults%10!=0):
+            totalPages += 1
+        # Check if current Page is Invalid
+        if( pageNo > totalPages or pageNo<1):
+            return JsonResponse({'status':'false','message':"Page Number is Invalid."}, status=HTTPStatus.BAD_REQUEST)
+
+        # Calculate the response of current Page only
+        finalAns = []
+        start = (pageNo-1)*10
+
+        for i in range(start,start+10):
+            if(i>=totalResults):
+                break
+          
+            finalAns.append(ans[i])
+        return JsonResponse({'status':'true', 'totalResults':totalResults,
+        'currentPageResults':len(finalAns),"page":pageNo,'totalPages':totalPages,'data':finalAns},status=HTTPStatus.OK)
+        
+
     except Exception as e:
         return JsonResponse({'status':'false','message':"Inernal Server Error. We are sorry for inconvenience."}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
 
